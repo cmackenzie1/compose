@@ -1,0 +1,6 @@
+jackett/
+prowlarr/
+radarr/
+sonarr/
+transmission-ovpn/
+.env

@@ -1,0 +1,76 @@
+services:
+  sonarr:
+    image: ghcr.io/linuxserver/sonarr
+    container_name: sonarr
+    restart: always
+    ports:
+      - 8989:8989
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - /home/cole/servarr/sonarr/config:/config
+      - /mnt/media/data:/data
+    links:
+      - transmission-ovpn
+      - prowlarr
+
+  radarr:
+    image: ghcr.io/linuxserver/radarr
+    container_name: radarr
+    restart: always
+    ports:
+      - 7878:7878
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - /home/cole/servarr/radarr/config:/config
+      - /mnt/media/data:/data
+    links:
+      - transmission-ovpn
+      - prowlarr
+
+  prowlarr:
+    image: ghcr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    restart: always
+    ports:
+      - 9696:9696
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - /home/cole/servarr/prowlarr/config:/config
+
+  transmission-ovpn:
+    image: haugene/transmission-openvpn
+    container_name: transmission-ovpn
+    restart: always
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    volumes:
+      - /home/cole/servarr/transmission-ovpn/config:/config
+      - /mnt/media/data/torrents:/data
+    ports:
+      - 9091:9091
+    environment:
+      - PUID
+      - PGID
+      - TZ
+      - OPENVPN_PROVIDER
+      - OPENVPN_USERNAME
+      - OPENVPN_PASSWORD
+      - NORDVPN_COUNTRY
+      - NORDVPN_CATEGORY
+    dns:
+      - 1.1.1.1
+      - 1.0.0.1
+      - 8.8.8.8
+    healthcheck:
+      disable: true
