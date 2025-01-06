@@ -10,7 +10,7 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
-      - ./sonarr/config:/config
+      - sonarr-data:/config
       - /mnt/media/data:/data
     links:
       - transmission-ovpn
@@ -27,7 +27,7 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
-      - ./radarr/config:/config
+      - radarr-data:/config
       - /mnt/media/data:/data
     links:
       - transmission-ovpn
@@ -44,7 +44,7 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
-      - ./prowlarr/config:/config
+      - prowlarr-data:/config
 
   transmission-ovpn:
     image: haugene/transmission-openvpn
@@ -55,7 +55,7 @@ services:
     devices:
       - /dev/net/tun:/dev/net/tun
     volumes:
-      - ./transmission-ovpn/config:/config
+      - transmission-ovpn-data:/config
       - /mnt/media/data/torrents:/data
     ports:
       - 9091:9091
@@ -74,3 +74,9 @@ services:
       - 8.8.8.8
     healthcheck:
       disable: true
+
+volumes:
+  prowlarr-data:
+  sonarr-data:
+  radarr-data:
+  transmission-ovpn-data:
