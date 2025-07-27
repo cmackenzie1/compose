@@ -10,10 +10,10 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
-      - sonarr-data:/config
+      - /mnt/nvme0/containers/sonarr:/config
       - /mnt/media/data:/data
     links:
-      - transmission-ovpn
+      - qbittorrent
       - prowlarr
 
   radarr:
@@ -27,10 +27,10 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
-      - radarr-data:/config
+      - /mnt/nvme0/containers/radarr:/config
       - /mnt/media/data:/data
     links:
-      - transmission-ovpn
+      - qbittorrent
       - prowlarr
 
   prowlarr:
@@ -44,39 +44,47 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
-      - prowlarr-data:/config
+      - /mnt/nvme0/containers/prowlarr:/config
 
-  transmission-ovpn:
-    image: haugene/transmission-openvpn
-    container_name: transmission-ovpn
-    restart: always
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun
     cap_add:
       - NET_ADMIN
     devices:
       - /dev/net/tun:/dev/net/tun
-    volumes:
-      - transmission-ovpn-data:/config
-      - /mnt/media/data/torrents:/data
     ports:
-      - 9091:9091
+      - 8888:8888/tcp # HTTP proxy
+      - 8388:8388/tcp # Shadowsocks
+      - 8388:8388/udp # Shadowsocks
+      - 8080:8080 # qBittorrent WebUI
+      - 6881:6881 # qBittorrent torrenting port
+      - 6881:6881/udp # qBittorrent torrenting port
+    volumes:
+      - /mnt/nvme0/containers/gluetun:/gluetun
     environment:
-      - PUID
-      - PGID
-      - TZ
-      - OPENVPN_PROVIDER
-      - OPENVPN_USERNAME
-      - OPENVPN_PASSWORD
-      - NORDVPN_COUNTRY
-      - NORDVPN_CATEGORY
-    dns:
-      - 1.1.1.1
-      - 1.0.0.1
-      - 8.8.8.8
-    healthcheck:
-      disable: true
+      - VPN_SERVICE_PROVIDER=${VPN_SERVICE_PROVIDER}
+      - VPN_TYPE=openvpn
+      - SERVER_CITIES="Seattle,Vancouver,Portland"
+      - SERVER_CATEGORIES="Standard VPN servers,P2P"
+      - OPENVPN_USER=${OPENVPN_USERNAME}
+      - OPENVPN_PASSWORD=${OPENVPN_PASSWORD}
+      - TZ=${TZ}
+    restart: unless-stopped
 
-volumes:
-  prowlarr-data:
-  sonarr-data:
-  radarr-data:
-  transmission-ovpn-data:
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - WEBUI_PORT=8080
+      - TORRENTING_PORT=6881
+    volumes:
+      - /mnt/nvme0/containers/qbittorrent:/config
+      - /mnt/media/data:/data
+    restart: unless-stopped
+    depends_on:
+      - gluetun
