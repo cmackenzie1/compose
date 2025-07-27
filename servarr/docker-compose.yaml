@@ -88,3 +88,19 @@ services:
     restart: unless-stopped
     depends_on:
       - gluetun
+
+  overseerr:
+    image: lscr.io/linuxserver/overseerr:latest
+    container_name: overseerr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - /mnt/nvme0/containers/overseerr:/config
+    ports:
+      - 5055:5055
+    restart: unless-stopped
+    links:
+      - sonarr
+      - radarr

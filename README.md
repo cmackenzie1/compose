@@ -13,7 +13,7 @@ the `-f` flag to force removal without confirmation.
 ```bash
 docker system prune -a
 docker image prune -a
-docker system prune -a --volumes
+docker system prune -a
 docker system df
 ```
 
