@@ -90,16 +90,22 @@ services:
       - gluetun
 
   overseerr:
-    image: lscr.io/linuxserver/overseerr:latest
-    container_name: overseerr
+    image: ghcr.io/seerr-team/seerr:latest
+    container_name: seerr
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
-      - /mnt/nvme0/containers/overseerr:/config
+      - /mnt/nvme0/containers/overseerr:/app/config
     ports:
       - 5055:5055
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/status || exit 1
+      start_period: 20s
+      timeout: 3s
+      interval: 15s
+      retries: 3
     restart: unless-stopped
     links:
       - sonarr
