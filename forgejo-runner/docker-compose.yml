@@ -1,0 +1,26 @@
+services:
+  docker-in-docker:
+    image: docker:dind
+    container_name: docker_dind
+    privileged: true
+    command: ["dockerd", "-H", "tcp://0.0.0.0:2375", "--tls=false", "--bip=10.99.0.1/24", "--default-address-pool=base=10.100.0.0/16,size=24"]
+    restart: unless-stopped
+
+  runner:
+    image: data.forgejo.org/forgejo/runner:13
+    container_name: forgejo-runner
+    depends_on:
+      - docker-in-docker
+    environment:
+      DOCKER_HOST: tcp://docker-in-docker:2375
+    user: "1001:1001"
+    working_dir: /data
+    volumes:
+      - ./data:/data
+    command: forgejo-runner daemon -c /data/runner-config.yml
+    restart: unless-stopped
+
+networks:
+  default:
+    name: forgejo_default
+    external: true
