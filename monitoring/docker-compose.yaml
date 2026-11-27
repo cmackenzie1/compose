@@ -13,7 +13,7 @@ services:
       - grafana-data:/var/lib/grafana
 
   prometheus:
-    image: prom/prometheus:v3.1.0
+    image: prom/prometheus:v3.16.0
     container_name: prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
